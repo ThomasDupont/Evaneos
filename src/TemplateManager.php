@@ -1,4 +1,7 @@
 <?php
+//Miss PSR4 namespace and Autoloading.
+//But difficult to implement this in only 1 hour :)
+
 
 //declare the class as final to notify about the place of the class in the code
 final class TemplateManager
