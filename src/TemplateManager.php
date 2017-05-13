@@ -2,26 +2,37 @@
 
 class TemplateManager
 {
+
+    private $_data = [];
+    
     public function getTemplateComputed(Template $tpl, array $data)
     {
         if (!$tpl) {
             throw new \RuntimeException('no tpl given');
         }
-
-        $replaced = clone($tpl);
-        $replaced->subject = $this->computeText($replaced->subject, $data);
-        $replaced->content = $this->computeText($replaced->content, $data);
-
-        return $replaced;
+        $this->_data = $data;
+        $tpl->subject = $this->_computeSubject($tpl->subject);
+        $tpl->content = $this->_computeContent($tpl->content);
+        return $tpl;
     }
 
-    private function computeText($text, array $data)
+    private function _computeSubject($text)
+    {
+        return isset($this->_data['quote']) ? str_replace(
+                '[quote:destination_name]',
+                DestinationRepository::getInstance()->getById($this->_data['quote']->destinationId)->countryName,
+                $text
+            ) : $text;
+    }
+
+    private function _computeContent($text)
     {
         $APPLICATION_CONTEXT = ApplicationContext::getInstance();
-        $user = isset($data['user']) && ($data['user'] instanceof User) ? $data['user'] : $APPLICATION_CONTEXT->getCurrentUser();
+        $user = isset($this->_data['user']) && ($this->_data['user'] instanceof User) ?
+            $this->_data['user'] : $APPLICATION_CONTEXT->getCurrentUser();
 
-        if (isset($data['quote']) && $data['quote'] instanceof Quote){
-            $quote               = $data['quote'];
+        if (isset($this->_data['quote']) && $this->_data['quote'] instanceof Quote){
+            $quote               = $this->_data['quote'];
             $quoteFromRepository = QuoteRepository::getInstance()->getById($quote->id);
             $usefulObject        = SiteRepository::getInstance()->getById($quote->siteId);
             $destination         = DestinationRepository::getInstance()->getById($quote->destinationId);
